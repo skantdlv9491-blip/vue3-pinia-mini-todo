@@ -18,7 +18,6 @@ const todoView = computed(() => {
   if (filter.value === "done") {
     base = base.filter((t) => t.done);
   }
-  alert(JSON.stringify(base));
   return base;
 });
 
