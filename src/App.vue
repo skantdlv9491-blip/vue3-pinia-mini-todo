@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, ref } from "vue";
+import { computed, watch, ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import TodoInput from "./components/TodoInput.vue";
@@ -15,7 +15,6 @@ import type {
 import { useTodoStore } from "./stores/todoStore";
 
 const todoStore = useTodoStore();
-
 const route = useRoute();
 const router = useRouter();
 
@@ -95,6 +94,10 @@ watch(
   { deep: false },
 );
 
+onMounted(() => {
+  todoStore.fetchTodos();
+});
+
 const todoView = computed(() => {
   let result = [...todoStore.todos];
   if (filter.value === "active") {
@@ -133,9 +136,6 @@ const onToggle = (id: number) => {
 const onRemove = (id: number) => {
   todoStore.removeTodo(id);
 };
-const onClearAll = () => {
-  todoStore.clearAll();
-};
 </script>
 
 <template>
@@ -148,7 +148,5 @@ const onClearAll = () => {
     <TodoSort v-model="sort" />
 
     <TodoList :todos="todoView" @toggle="onToggle" @remove="onRemove" />
-
-    <button type="button" @click="onClearAll">전체 삭제</button>
   </main>
 </template>
