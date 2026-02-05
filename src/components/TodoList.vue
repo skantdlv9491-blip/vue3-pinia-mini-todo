@@ -13,20 +13,24 @@ const emit = defineEmits<{
 <template>
   <section>
     <ul>
-      <li v-for="t in todos" :key="t.id">
+      <li v-for="todo in todos" :key="todo.id">
         <label>
           <input
             type="checkbox"
-            :checked="t.done"
-            @change="emit('toggle', t.id)"
+            :checked="todo.done"
+            @change="emit('toggle', todo.id)"
           />
           <span>
-            {{ t.text }}
-            <span v-if="t.done">(완료)</span>
+            {{ todo.text }}
+            <span v-if="todo.done">(완료)</span>
           </span>
         </label>
 
-        <button v-if="!t.done" type="button" @click="emit('remove', t.id)">
+        <button
+          v-if="!todo.done"
+          type="button"
+          @click="emit('remove', todo.id)"
+        >
           삭제
         </button>
       </li>

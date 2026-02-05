@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, watch, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+
 import TodoInput from "./components/TodoInput.vue";
 import TodoList from "./components/TodoList.vue";
 import TodoFilter from "./components/TodoFilter.vue";
@@ -14,9 +16,84 @@ import { useTodoStore } from "./stores/todoStore";
 
 const todoStore = useTodoStore();
 
+const route = useRoute();
+const router = useRouter();
+
 const filter = ref<TodoFilterType>("all");
 const searchText = ref("");
 const sort = ref<TodoSortType>("oldset");
+
+const isTodoFilter = (value: unknown): value is TodoFilterType => {
+  return value === "all" || value === "active" || value === "done";
+};
+
+const isTodoSort = (value: unknown): value is TodoSortType => {
+  return value === "latest" || value === "oldset" || value === "doneFirst";
+};
+
+const applyQueryToUiState = (query: Record<string, unknown>) => {
+  if (isTodoFilter(query.filter)) {
+    filter.value = query.filter;
+  } else {
+    filter.value = "all";
+  }
+
+  if (isTodoSort(query.sort)) {
+    sort.value = query.sort;
+  } else {
+    sort.value = "oldset";
+  }
+
+  const q = query.search;
+  if (typeof q === "string") {
+    searchText.value = q;
+  } else {
+    searchText.value = "";
+  }
+};
+
+const buildQueryFromUiState = () => {
+  const query: Record<string, string> = {};
+
+  if (filter.value !== "all") {
+    query.filter = filter.value;
+  }
+
+  if (sort.value !== "oldset") {
+    query.sort = sort.value;
+  }
+
+  const keyword = searchText.value.trim();
+  if (keyword) {
+    query.search = keyword;
+  }
+
+  return query;
+};
+
+applyQueryToUiState(route.query as Record<string, unknown>);
+
+let isSyncingFromUi = false;
+
+watch(
+  () => route.query,
+  (newQuery) => {
+    if (isSyncingFromUi) {
+      return;
+    }
+    applyQueryToUiState(newQuery as Record<string, unknown>);
+  },
+);
+
+watch(
+  [filter, sort, searchText],
+  async () => {
+    isSyncingFromUi = true;
+    await router.replace({ query: buildQueryFromUiState() });
+    isSyncingFromUi = false;
+  },
+  { deep: false },
+);
 
 const todoView = computed(() => {
   let result = [...todoStore.todos];
@@ -27,7 +104,9 @@ const todoView = computed(() => {
   }
 
   if (searchText.value.trim()) {
-    result = result.filter((t) => t.text.includes(searchText.value));
+    result = result.filter((t) =>
+      t.text.toLocaleLowerCase().includes(searchText.value.toLocaleLowerCase()),
+    );
   }
 
   if (sort.value === "latest") {
@@ -45,20 +124,6 @@ const counterText = computed(() => {
   return `총 ${todoStore.totalCount}개 / 완료 ${todoStore.doneCount}개`;
 });
 
-watch(
-  () => filter.value,
-  (nVal, oVal) => {
-    console.log("filter 변경:", oVal, "→", nVal);
-  },
-);
-
-watch(
-  () => todoStore.todos.length,
-  (nVal, oVal) => {
-    console.log("todos 길이 변경:", oVal, "→", nVal);
-  },
-);
-
 const onAdd = (text: string) => {
   todoStore.addTodo(text);
 };
@@ -75,7 +140,7 @@ const onClearAll = () => {
 
 <template>
   <main>
-    <h1>4단계: UI 타입 분리 + v-model 패턴 통일</h1>
+    <h1>5단계: URL 쿼리로 UI 상태 유지</h1>
     <p>{{ counterText }}</p>
     <TodoInput @add="onAdd" />
     <TodoSearch v-model="searchText" />
