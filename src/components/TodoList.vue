@@ -12,6 +12,8 @@ const emit = defineEmits<{
 </script>
 <template>
   <section>
+    <h2>📋 할 일 목록</h2>
+    <p>현재 단계별 진행 상황입니다.</p>
     <ul>
       <li v-for="todo in todos" :key="todo.id">
         <label>

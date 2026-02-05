@@ -128,6 +128,10 @@ const counterText = computed(() => {
 });
 
 const onAdd = (text: string) => {
+  if (!text) {
+    alert("할 일을 입력하세요.");
+    return;
+  }
   todoStore.addTodo(text);
 };
 const onToggle = (id: number) => {
@@ -150,3 +154,27 @@ const onRemove = (id: number) => {
     <TodoList :todos="todoView" @toggle="onToggle" @remove="onRemove" />
   </main>
 </template>
+
+<style>
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+main {
+  max-width: 640px;
+  margin: 40px auto;
+}
+
+button {
+  margin: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+input {
+  padding: 4px 6px;
+}
+</style>
