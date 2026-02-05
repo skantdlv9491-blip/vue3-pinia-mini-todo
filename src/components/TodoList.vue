@@ -26,7 +26,9 @@ const emit = defineEmits<{
           </span>
         </label>
 
-        <button type="button" @click="emit('remove', t.id)">삭제</button>
+        <button v-if="!t.done" type="button" @click="emit('remove', t.id)">
+          삭제
+        </button>
       </li>
     </ul>
 

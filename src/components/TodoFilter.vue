@@ -1,6 +1,5 @@
 <script setup lang="ts">
-export type TodoFilter = "all" | "active" | "done";
-
+import type { TodoFilter } from "@/types/todoUi";
 const props = defineProps<{
   modelValue: TodoFilter;
 }>();

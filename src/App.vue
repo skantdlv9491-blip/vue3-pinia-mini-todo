@@ -3,22 +3,42 @@ import { computed, watch, ref } from "vue";
 import TodoInput from "./components/TodoInput.vue";
 import TodoList from "./components/TodoList.vue";
 import TodoFilter from "./components/TodoFilter.vue";
-import type { TodoFilter as TodoFilterType } from "./components/TodoFilter.vue";
+import TodoSearch from "./components/TodoSearch.vue";
+import TodoSort from "./components/TodoSort.vue";
+
+import type {
+  TodoFilter as TodoFilterType,
+  TodoSort as TodoSortType,
+} from "@/types/todoUi";
 import { useTodoStore } from "./stores/todoStore";
 
 const todoStore = useTodoStore();
 
 const filter = ref<TodoFilterType>("all");
+const searchText = ref("");
+const sort = ref<TodoSortType>("oldset");
 
 const todoView = computed(() => {
-  let base = todoStore.todos;
+  let result = [...todoStore.todos];
   if (filter.value === "active") {
-    base = base.filter((t) => !t.done);
+    result = result.filter((t) => !t.done);
+  } else if (filter.value === "done") {
+    result = result.filter((t) => t.done);
   }
-  if (filter.value === "done") {
-    base = base.filter((t) => t.done);
+
+  if (searchText.value.trim()) {
+    result = result.filter((t) => t.text.includes(searchText.value));
   }
-  return base;
+
+  if (sort.value === "latest") {
+    result.sort((a, b) => b.id - a.id);
+  } else if (sort.value === "oldset") {
+    result.sort((a, b) => a.id - b.id);
+  } else {
+    result.sort((a, b) => Number(b.done) - Number(a.done));
+  }
+
+  return result;
 });
 
 const counterText = computed(() => {
@@ -55,10 +75,12 @@ const onClearAll = () => {
 
 <template>
   <main>
-    <h1>Vue3 + TS + Pinia 1단계 (emit -> App -> store -> computed -> 화면)</h1>
-    <TodoFilter v-model="filter" />
+    <h1>4단계: UI 타입 분리 + v-model 패턴 통일</h1>
     <p>{{ counterText }}</p>
     <TodoInput @add="onAdd" />
+    <TodoSearch v-model="searchText" />
+    <TodoFilter v-model="filter" />
+    <TodoSort v-model="sort" />
 
     <TodoList :todos="todoView" @toggle="onToggle" @remove="onRemove" />
 
